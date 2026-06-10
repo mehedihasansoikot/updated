@@ -1,80 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Election Voting System</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-body{
-    margin:0;
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background:linear-gradient(135deg,#2b003d,#ff4fd8);
-    font-family:Arial;
-}
-
-.box{
-    background:white;
-    padding:25px;
-    border-radius:15px;
-    text-align:center;
-    width:90%;
-    max-width:420px;
-}
-
-input{
-    padding:10px;
-    margin:5px;
-    width:80%;
-}
-
-button{
-    padding:10px 15px;
-    margin:5px;
-    background:#8000ff;
-    color:white;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-}
-
-h1,h3{
-    color:#111;
-}
-
-.robot{
-    font-weight:bold;
-}
-</style>
-</head>
-
-<body>
-
-<div class="box" id="app">
-
-<h3>Enter Roll & Secret Code</h3>
-
-<input id="roll" type="number" placeholder="Roll (121–150)">
-<br>
-<input id="code" type="password" placeholder="Secret Code">
-<br><br>
-
-<button onclick="start()">Continue</button>
-
-</div>
-
 <script>
 
-// ✅ YOUR SUPABASE DETAILS (INSERTED)
+const app = document.getElementById("app");
+
+// Supabase
 const URL = "https://mvngflggbixwsedtckck.supabase.co";
 const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12bmdmbGdnYml4d3NlZHRja2NrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwODU5MjQsImV4cCI6MjA5NjY2MTkyNH0.dunDPjdHiN5T-DSJGJZ1DiDuBZvfIYz7agoVs_R81-4";
 
 let rollGlobal = null;
 
-// LOGIN
 function start(){
 
     let roll = document.getElementById("roll").value;
@@ -85,7 +18,7 @@ function start(){
         return;
     }
 
-    fetch(${URL}/rest/v1/votes?roll=eq.${roll}, {
+    fetch(`${URL}/rest/v1/votes?roll=eq.${roll}`, {
         headers:{
             apikey: KEY,
             Authorization: "Bearer " + KEY
@@ -94,7 +27,7 @@ function start(){
     .then(res => res.json())
     .then(data => {
 
-        if(data.length === 0){
+        if(!data || data.length === 0){
             alert("Roll not found in system");
             return;
         }
@@ -113,10 +46,13 @@ function start(){
 
         rollGlobal = roll;
         showQuestion();
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Connection error. Check Supabase setup.");
     });
 }
 
-// QUESTION
 function showQuestion(){
     app.innerHTML = `
         <h3>What do you want for the system?</h3>
@@ -126,10 +62,9 @@ function showQuestion(){
     `;
 }
 
-// VOTE
 function vote(choice){
 
-    fetch(${URL}/rest/v1/votes?roll=eq.${rollGlobal}, {
+    fetch(`${URL}/rest/v1/votes?roll=eq.${rollGlobal}`, {
         method:"PATCH",
         headers:{
             apikey: KEY,
@@ -142,11 +77,8 @@ function vote(choice){
     });
 
     app.innerHTML = `
-        <h1 class="robot">THANK YOU FOR YOUR PARTICIPATION</h1>
+        <h1>THANK YOU FOR YOUR PARTICIPATION</h1>
     `;
 }
 
 </script>
-
-</body>
-</html>
