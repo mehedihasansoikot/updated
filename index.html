@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Election Portal</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body{
+    margin:0;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:linear-gradient(135deg,#1a0025,#ff4fd8);
+    font-family:Arial;
+}
+
+.card{
+    background:rgba(255,255,255,0.95);
+    padding:30px;
+    border-radius:20px;
+    text-align:center;
+    width:90%;
+    max-width:420px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+h1,h2,h3{
+    color:#111;
+}
+
+input{
+    width:80%;
+    padding:10px;
+    margin:6px;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+
+button{
+    padding:10px 15px;
+    margin:6px;
+    background:#7a00ff;
+    color:white;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+button:hover{
+    background:#a000ff;
+    transform:scale(1.05);
+}
+
+.robot{
+    font-weight:bold;
+    font-size:22px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card" id="app">
+    <h2>Election Login</h2>
+
+    <input id="roll" type="number" placeholder="Enter Roll (121–150)">
+    <br>
+    <input id="code" type="password" placeholder="Secret Code">
+    <br>
+
+    <button onclick="start()">Continue</button>
+</div>
+
+<script>
+
+// 🔵 SUPABASE CONFIG (YOUR DATA INSERTED)
+const supabaseUrl = "https://mvngflggbixwsedtckck.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12bmdmbGdnYml4d3NlZHRja2NrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwODU5MjQsImV4cCI6MjA5NjY2MTkyNH0.dunDPjdHiN5T-DSJGJZ1DiDuBZvfIYz7agoVs_R81-4";
+
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+let rollGlobal = null;
+
+// LOGIN
+async function start(){
+
+    let roll = document.getElementById("roll").value;
+    let code = document.getElementById("code").value;
+
+    if(roll < 121 || roll > 150){
+        alert("Invalid Roll");
+        return;
+    }
+
+    let { data, error } = await supabase
+        .from('votes')
+        .select('*')
+        .eq('roll', roll)
+        .single();
+
+    if(error || !data){
+        alert("Roll not found");
+        return;
+    }
+
+    if(data.code !== code){
+        alert("Wrong secret code");
+        return;
+    }
+
+    if(data.choice){
+        document.getElementById("app").innerHTML =
+        "<h3>You have already voted</h3>";
+        return;
+    }
+
+    rollGlobal = roll;
+    showQuestion();
+}
+
+// QUESTION
+function showQuestion(){
+    document.getElementById("app").innerHTML = `
+        <h2>What do you want for the betterment of the system?</h2>
+
+        <button onclick="vote('ELECTION')">I want ELECTION</button>
+        <br>
+        <button onclick="vote('NO ELECTION')">I do not want ELECTION</button>
+    `;
+}
+
+// VOTE
+async function vote(choice){
+
+    await supabase
+        .from('votes')
+        .update({ choice: choice })
+        .eq('roll', rollGlobal);
+
+    document.getElementById("app").innerHTML = `
+        <h1 class="robot">THANK YOU FOR YOUR PARTICIPATION</h1>
+    `;
+}
+
+</script>
+
+</body>
+</html>
